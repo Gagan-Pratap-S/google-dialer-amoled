@@ -5,7 +5,6 @@ A clean, reproducible Antigravity skill and CLI tool to convert any stock Google
 ## Highlights
 - **100% True AMOLED Black (`#000000`)**: Saves battery and looks vibrant on OLED screens.
 - **High-Contrast Readability**: White typography for dialpad digits, letters, and empty-state messaging.
-- **Silhouette Avatar Fix**: Restores visible outlines for unsaved contacts and service numbers.
 - **Preserves Original Navigation & Layout**: Retains Google's stock bottom 2-tab navigation dock.
 - **Root & Non-Root Support**:
   - **Non-Root**: Builds a standalone cloned APK (`com.google.android.dialer.amoled`) that installs alongside stock dialer without signature conflicts.
