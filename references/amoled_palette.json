@@ -1,0 +1,33 @@
+{
+  "values_night_colors": {
+    "settingslib_materialColorSurfaceContainer": "#000000",
+    "settingslib_materialColorSurfaceContainerHigh": "#0a0a0a",
+    "settingslib_materialColorSurfaceContainerHighest": "#141414",
+    "settingslib_materialColorSurfaceVariant": "#1f1f1f",
+    "bam_center_fragment_background": "#000000",
+    "survey_surface_color": "#000000",
+    "survey_surface_color_elevation_2": "#050505",
+    "survey_surface_color_elevation_3": "#0a0a0a",
+    "survey_alert_dialog_bg_color": "#000000",
+    "dialpad_icon_text_enabled": "#ffffffff",
+    "dialpad_icon_text_disabled": "#80ffffff",
+    "empty_content_view_message": "#ffffffff",
+    "settingslib_materialColorOnSurface": "#ffffffff",
+    "settingslib_materialColorOnSurfaceVariant": "#ffffffff"
+  },
+  "values_night_v31_colors": {
+    "google_marterial_dialog_background_color": "#000000",
+    "settingslib_dialog_background": "#000000",
+    "settingslib_materialColorSurfaceContainer": "#000000",
+    "settingslib_materialColorSurfaceContainerHigh": "#0a0a0a",
+    "settingslib_materialColorSurfaceContainerHighest": "#141414",
+    "settingslib_materialColorSurfaceVariant": "#1f1f1f"
+  },
+  "silhouette_outline_replacements": {
+    "settingslib_materialColorOutline": "@android:color/system_outline_dark",
+    "gm3_sys_color_dynamic_dark_outline": "@android:color/system_outline_dark",
+    "m3_sys_color_dynamic_dark_outline": "@android:color/system_outline_dark",
+    "sud_system_outline_dark": "@android:color/system_outline_dark",
+    "mc3_outline": "@android:color/system_outline_dark"
+  }
+}
