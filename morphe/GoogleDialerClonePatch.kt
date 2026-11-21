@@ -14,7 +14,7 @@ import javax.xml.transform.stream.StreamResult
 val googleDialerClonePatch = resourcePatch(
     name = "Clone Dialer Package",
     description = "Changes package to com.google.android.dialer.amoled so non-rooted devices can install it without signature conflict.",
-    use = false
+    default = false
 ) {
     compatibleWith("com.google.android.dialer")
 
