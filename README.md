@@ -93,6 +93,15 @@ python scripts/mod_dialer.py build --input "path/to/stock_dialer.apk" --mode sys
 
 ---
 
+### Method C: Morphe Manager (Android App)
+
+If you use **Morphe Manager** or **ReVanced Manager** directly on your phone:
+- Check the [`morphe/`](morphe/) directory in this repository.
+- Contains native Kotlin patches (`GoogleDialerThemePatch.kt` and `GoogleDialerClonePatch.kt`) ready to be bundled or submitted directly to [MorpheApp/morphe-patches](https://github.com/MorpheApp/morphe-patches).
+- See [`morphe/README.md`](morphe/README.md) for instructions on building or loading custom patch bundles into Morphe Manager.
+
+---
+
 ## Installing on Your Phone
 
 - **Non-Root**: Copy the generated `_AMOLED.apk` to your phone and tap it in your file manager to install (or run `adb install -r path/to/app.apk`). Once installed, open your phone's **Default Apps** settings and set **Phone (AMOLED)** as your default calling app.
@@ -114,6 +123,10 @@ python scripts/mod_dialer.py build --input "path/to/stock_dialer.apk" --mode sys
 google-dialer-amoled/
 ├── SKILL.md                      # Agent skill instructions (Antigravity / Cursor / Claude)
 ├── README.md                     # Documentation and usage guide
+├── morphe/                       # Morphe / ReVanced Manager Kotlin patch source
+│   ├── GoogleDialerThemePatch.kt
+│   ├── GoogleDialerClonePatch.kt
+│   └── README.md
 ├── references/
 │   └── amoled_palette.json       # Color definitions & silhouette outline mappings
 └── scripts/
