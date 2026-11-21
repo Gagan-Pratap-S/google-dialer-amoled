@@ -11,7 +11,7 @@ import app.morphe.patches.dialer.DialerConstants.COMPATIBILITY_GOOGLE_DIALER
 val googleDialerClonePatch = resourcePatch(
     name = "Clone Dialer Package",
     description = "Changes package to com.google.android.dialer.amoled so non-rooted devices can install it without signature conflict.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_DIALER)
 
