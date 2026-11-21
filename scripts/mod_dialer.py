@@ -142,9 +142,15 @@ def clone_package_for_non_root(decompiled_dir: str):
     # 1. Change package name
     content = content.replace('package="com.google.android.dialer"', 'package="com.google.android.dialer.amoled"')
 
-    # 2. Change custom receiver permission
-    content = content.replace('android:name="com.google.android.dialer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"',
-                              'android:name="com.google.android.dialer.amoled.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"')
+    # 2. Change custom permissions to prevent INSTALL_FAILED_DUPLICATE_PERMISSION
+    content = re.sub(r'(<(?:uses-)?permission(?:-group)?\b[^>]*\bandroid:name=")com\.google\.android\.dialer\.([^"]+")',
+                     r'\g<1>com.google.android.dialer.amoled.\g<2>', content)
+    content = content.replace('android:permission="com.google.android.dialer.',
+                              'android:permission="com.google.android.dialer.amoled.')
+    content = content.replace('com.google.android.dialer.TRANSIT_MODE_STATE_CHANGE',
+                              'com.google.android.dialer.amoled.TRANSIT_MODE_STATE_CHANGE')
+    content = content.replace('com.google.android.dialer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION',
+                              'com.google.android.dialer.amoled.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION')
 
     # 3. Change Google dialer support library to optional (prevents install failures on non-Pixel devices)
     content = content.replace('<uses-library android:name="com.google.android.dialer.support" android:required="true"/>',
