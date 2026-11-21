@@ -12,15 +12,73 @@ import json
 import os
 import re
 import shutil
+import ssl
 import subprocess
 import sys
+import urllib.request
 import zipfile
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PALETTE_FILE = os.path.join(SCRIPT_DIR, '..', 'references', 'amoled_palette.json')
+TOOLS_DIR = os.path.join(SCRIPT_DIR, 'tools')
 
-DEFAULT_APKTOOL = r'C:\Users\Lenovo\.gemini\antigravity\scratch\apk_mod\apktool.jar'
-DEFAULT_SIGNER = r'C:\Users\Lenovo\.gemini\antigravity\scratch\apk_mod\uber-apk-signer.jar'
+# Well-known working fallbacks
+LOCAL_FALLBACK_APKTOOL = r'C:\Users\Lenovo\.gemini\antigravity\scratch\apk_mod\apktool.jar'
+LOCAL_FALLBACK_SIGNER = r'C:\Users\Lenovo\.gemini\antigravity\scratch\apk_mod\uber-apk-signer.jar'
+
+APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.3.jar"
+SIGNER_URL = "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar"
+
+def download_file(url: str, dest_path: str):
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    req = urllib.request.Request(url, headers=headers)
+    
+    # Try standard context first, fallback to unverified SSL if certificates are missing
+    try:
+        with urllib.request.urlopen(req) as resp, open(dest_path, 'wb') as out_f:
+            shutil.copyfileobj(resp, out_f)
+    except Exception:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(req, context=ctx) as resp, open(dest_path, 'wb') as out_f:
+            shutil.copyfileobj(resp, out_f)
+
+def ensure_tools():
+    """Auto-detects or downloads apktool and uber-apk-signer if not present."""
+    os.makedirs(TOOLS_DIR, exist_ok=True)
+    
+    apktool_jar = os.path.join(TOOLS_DIR, 'apktool.jar')
+    if not os.path.exists(apktool_jar):
+        if shutil.which("apktool"):
+            apktool_jar = "apktool"
+        elif os.path.exists(LOCAL_FALLBACK_APKTOOL):
+            shutil.copy2(LOCAL_FALLBACK_APKTOOL, apktool_jar)
+        else:
+            print("[*] Downloading apktool.jar (one-time setup)...")
+            try:
+                download_file(APKTOOL_URL, apktool_jar)
+                print("[+] apktool.jar downloaded.")
+            except Exception as e:
+                print(f"[-] Could not auto-download apktool: {e}")
+                print("    Please place apktool.jar inside scripts/tools/ or install it on PATH.")
+                sys.exit(1)
+
+    signer_jar = os.path.join(TOOLS_DIR, 'uber-apk-signer.jar')
+    if not os.path.exists(signer_jar):
+        if os.path.exists(LOCAL_FALLBACK_SIGNER):
+            shutil.copy2(LOCAL_FALLBACK_SIGNER, signer_jar)
+        else:
+            print("[*] Downloading uber-apk-signer.jar (one-time setup)...")
+            try:
+                download_file(SIGNER_URL, signer_jar)
+                print("[+] uber-apk-signer.jar downloaded.")
+            except Exception as e:
+                print(f"[-] Could not auto-download uber-apk-signer: {e}")
+                print("    Please place uber-apk-signer.jar inside scripts/tools/.")
+                sys.exit(1)
+
+    return apktool_jar, signer_jar
 
 def load_palette():
     if os.path.exists(PALETTE_FILE):
@@ -164,29 +222,54 @@ exit 0
         z.write(apk_path, 'system/priv-app/GoogleDialer/GoogleDialer.apk')
     print("  Magisk module created successfully!")
 
+def run_apktool(apktool_bin: str, args: list):
+    if apktool_bin == "apktool":
+        cmd = ["apktool"] + args
+    else:
+        cmd = ["java", "-jar", apktool_bin] + args
+    return subprocess.run(cmd, capture_output=True, text=True)
+
 def main():
     parser = argparse.ArgumentParser(description="Google Dialer AMOLED Theme Modder")
     subparsers = parser.add_subparsers(dest="command")
 
     build_p = subparsers.add_parser("build", help="Decompile, apply AMOLED theme, and build Google Dialer APK")
     build_p.add_argument("--input", required=True, help="Input stock Google Dialer APK")
-    build_p.add_argument("--output", required=True, help="Output modified APK path")
+    build_p.add_argument("--output", help="Output modified APK path (default: <input>_AMOLED.apk)")
     build_p.add_argument("--mode", choices=["system", "cloned"], default="cloned",
-                         help="'cloned' (default) creates com.google.android.dialer.amoled for non-root install; 'system' keeps original package name for Magisk")
-    build_p.add_argument("--bump-version", action="store_true", help="Bump versionCode to prevent downgrade errors")
+                         help="'cloned' (default) creates com.google.android.dialer.amoled for non-root; 'system' keeps original package for Magisk")
+    build_p.add_argument("--bump-version", action="store_true", default=True,
+                         help="Bump versionCode to prevent downgrade errors (enabled by default)")
+    build_p.add_argument("--no-bump-version", dest="bump_version", action="store_false",
+                         help="Do not bump versionCode")
     build_p.add_argument("--magisk", help="Output path for Magisk module zip (only applicable with mode=system)")
-    build_p.add_argument("--apktool", default=DEFAULT_APKTOOL, help="Path to apktool.jar")
-    build_p.add_argument("--signer", default=DEFAULT_SIGNER, help="Path to uber-apk-signer.jar")
+    build_p.add_argument("--apktool", help="Path to apktool.jar (auto-downloaded if not provided)")
+    build_p.add_argument("--signer", help="Path to uber-apk-signer.jar (auto-downloaded if not provided)")
 
     args = parser.parse_args()
     if args.command == "build":
-        work_dir = os.path.join(os.path.dirname(os.path.abspath(args.output)), "work_mod_dialer")
+        # Resolve tools
+        auto_apktool, auto_signer = ensure_tools()
+        apktool_bin = args.apktool if args.apktool else auto_apktool
+        signer_bin = args.signer if args.signer else auto_signer
+
+        input_apk = os.path.abspath(args.input)
+        if not os.path.exists(input_apk):
+            print(f"Error: Input APK '{input_apk}' not found!")
+            sys.exit(1)
+
+        if not args.output:
+            base, ext = os.path.splitext(input_apk)
+            out_apk = f"{base}_AMOLED{ext}"
+        else:
+            out_apk = os.path.abspath(args.output)
+
+        work_dir = os.path.join(os.path.dirname(out_apk), "work_mod_dialer")
         if os.path.exists(work_dir):
             shutil.rmtree(work_dir)
         
-        print(f"==> Decompiling {args.input} with apktool (-s preserves raw DEX files without decompilation)...")
-        res = subprocess.run(['java', '-jar', args.apktool, 'd', '-s', '-f', args.input, '-o', work_dir],
-                             capture_output=True, text=True)
+        print(f"==> Decompiling {input_apk} (-s preserves DEX files without decompilation)...")
+        res = run_apktool(apktool_bin, ['d', '-s', '-f', input_apk, '-o', work_dir])
         if res.returncode != 0:
             print("Apktool decompile error:", res.stderr)
             sys.exit(1)
@@ -204,22 +287,21 @@ def main():
         if args.bump_version:
             bump_version_code(work_dir)
 
-        print(f"==> Compiling APK with apktool (preserving original layouts & navigation dock)...")
-        unsigned_apk = args.output + ".unsigned.apk"
-        res = subprocess.run(['java', '-jar', args.apktool, 'b', work_dir, '-o', unsigned_apk],
-                             capture_output=True, text=True)
+        print(f"==> Compiling APK with apktool (preserving original layouts & views)...")
+        unsigned_apk = out_apk + ".unsigned.apk"
+        res = run_apktool(apktool_bin, ['b', work_dir, '-o', unsigned_apk])
         if res.returncode != 0:
             print("Apktool build error:", res.stderr)
             sys.exit(1)
 
-        print(f"==> Signing APK with test debug key...")
-        subprocess.run(['java', '-jar', args.signer, '-a', unsigned_apk, '--allowResign', '--overwrite'],
+        print(f"==> Signing APK...")
+        subprocess.run(['java', '-jar', signer_bin, '-a', unsigned_apk, '--allowResign', '--overwrite'],
                        capture_output=True, text=True)
-        shutil.move(unsigned_apk, args.output)
-        print(f"Successfully generated signed APK at: {args.output}")
+        shutil.move(unsigned_apk, out_apk)
+        print(f"\n[+] Successfully generated signed APK at:\n    {out_apk}")
 
         if args.magisk and args.mode == "system":
-            make_magisk_module(args.output, args.magisk)
+            make_magisk_module(out_apk, args.magisk)
 
         # Cleanup
         if os.path.exists(work_dir):

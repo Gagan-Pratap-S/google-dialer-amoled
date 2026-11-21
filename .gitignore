@@ -4,3 +4,5 @@ __pycache__/
 *.zip
 *.idsig
 work_mod_dialer/
+
+scripts/tools/

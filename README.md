@@ -1,137 +1,129 @@
-# Google Dialer AMOLED Theme Modder & Skill 🎨🖤
+# Google Dialer AMOLED Theme Modder
 
-Convert any stock **Google Phone (Google Dialer)** app into a true, battery-saving **pure pitch-black (`#000000`) AMOLED dark theme**.
+Turn any official Google Phone (Google Dialer) APK into a clean, true pitch-black (`#000000`) AMOLED theme.
 
-Unlike Google's default Material You dark grey (`#1f1f1f`), this mod turns all surfaces into true pitch black to maximize OLED/AMOLED battery savings, improves outdoor text legibility, and fixes missing contact avatars.
+Google's default dark mode uses Material You dark grey (`#1f1f1f`). This project repacks the APK with true black backgrounds across all surfaces, sets keypad digits to high-contrast white so they stay readable in bright sunlight, and fixes the silhouette outline on unsaved contact thumbnails.
 
----
-
-## ✨ Features at a Glance
-
-- **100% True AMOLED Black (`#000000`)**: Saves battery on OLED/AMOLED displays and looks deeply contrasty.
-- **Crystal Clear Text**: Dialpad digits, letters, and empty-state text are tinted pure white (`#ffffffff`) so they are easy to read under direct sunlight.
-- **Silhouette Avatar Fix**: Restores visible outlines for unsaved numbers and customer care contacts instead of disappearing into black.
-- **Stock Navigation & Layout Preserved**: Does not break or alter Google's clean 2-tab bottom dock (Favorites & Keypad).
-- **Zero Broken Features**: Only modifies visual colors and styles. No code or logic is changed.
-- **Supports Both Non-Root and Rooted Phones**:
-  - **Non-Root**: Installs side-by-side as a companion app without uninstalling your stock dialer.
-  - **Rooted (Magisk / KernelSU / APatch)**: Installs cleanly as a systemless module over the system app.
+> **Zero code or layout changes**: This mod only changes color and style resources. All layouts, views, and underlying app logic remain 100% stock.
 
 ---
 
-## 📱 Root vs. Non-Root (Which one should I choose?)
+## What It Changes
 
-| | Non-Root (Most Users) | Rooted (Advanced / Magisk) |
+- **Pure AMOLED Black (`#000000`)**: True black backgrounds across dialer home, keypad, settings, and dialogs.
+- **High-Contrast Readability**: Dialpad numbers and letters are set to pure white (`#ffffffff`) so they don't look washed out.
+- **Silhouette Avatar Fix**: Restores `@android:color/system_outline_dark` so unsaved contact thumbnails don't vanish into the black background.
+
+---
+
+## Root vs Non-Root
+
+| | Non-Root (Most Users) | Rooted (Magisk / KernelSU / APatch) |
 |---|---|---|
-| **Requires Root?** | ❌ No | ✅ Yes (Magisk, KernelSU, or APatch) |
+| **Requires Root?** | No | Yes |
 | **Output File** | `.apk` file | `.zip` Magisk module |
-| **How to Install** | Tap to install or via ADB | Flash in Magisk / KernelSU app |
-| **Replaces System App?** | No, installs alongside stock dialer (`com.google.android.dialer.amoled`) | Yes, mounts systemlessly over `/product/priv-app/GoogleDialer/` |
-| **AMOLED Black Theme** | ✅ 100% Working | ✅ 100% Working |
-| **High Contrast Text** | ✅ 100% Working | ✅ 100% Working |
-| **Silhouette Avatar Fix** | ✅ 100% Working | ✅ 100% Working |
+| **How to Install** | Standard APK install | Flash in Magisk / KernelSU app |
+| **Package Name** | `com.google.android.dialer.amoled` (cloned) | `com.google.android.dialer` (original) |
+| **Coexists with Stock?** | Yes, installs alongside factory dialer | Replaces factory dialer systemlessly |
 
 ---
 
-## 🔰 Beginner's Guide: How to Use (Step-by-Step)
+## Getting Started
 
-You have two simple ways to use this project:
-1. **Method 1**: Using **Antigravity AI** (Easiest — the AI does everything for you).
-2. **Method 2**: Using the **Terminal / Command Prompt** (Simple 1-command build).
+### 1. Download a Stock Google Phone APK
+Download any official Google Phone APK from [APKMirror](https://www.apkmirror.com/apk/google-inc/google-phone/) (pick `arm64-v8a` or `armeabi-v7a` matching your device).
 
----
-
-### Method 1: Using Antigravity AI (Easiest)
-
-If you are using Google's Antigravity agentic assistant:
-
-1. **Copy the Skill Folder**:
-   Copy this repository folder into your local Antigravity skills directory:
-   - **Windows**: `C:\Users\<YourUsername>\.gemini\config\skills\google-dialer-amoled`
-   - **Linux / macOS**: `~/.gemini/config/skills/google-dialer-amoled`
-2. **Download a Stock Google Dialer APK**:
-   Download any official Google Phone APK from a trusted source like [APKMirror](https://www.apkmirror.com/apk/google-inc/google-phone/) (choose your architecture, typically `arm64-v8a` or `armeabi-v7a`).
-3. **Ask Antigravity in Chat**:
-   Simply say:
-   > *"Convert my Google Dialer APK at `C:\path\to\GoogleDialer.apk` into an AMOLED build for my non-root phone."*
-4. **Done!** Antigravity will automatically execute the skill, apply the palette, sign the APK, and hand you the finished installation file.
-
----
-
-### Method 2: Manual Terminal Build (For Non-Techies)
-
-If you prefer running it yourself without AI, follow this simple walkthrough:
-
-#### Step 1: Install the Requirements (One-Time Setup)
-Make sure you have:
-1. **Python 3.8+**: [Download from python.org](https://www.python.org/downloads/) (Make sure to check *"Add Python to PATH"* during install).
-2. **Java (JRE 17+)**: [Download from adoptium.net](https://adoptium.net/) (Needed by Apktool).
-3. **Apktool**: Download `apktool.jar` from [apktool.org](https://apktool.org/) and place it in an easy-to-find folder.
-4. **Uber-APK-Signer**: Download `uber-apk-signer.jar` from [GitHub Releases](https://github.com/patrickfav/uber-apk-signer/releases) and put it in the same folder.
-
-#### Step 2: Download a Stock Google Phone APK
-- Go to [APKMirror - Google Phone](https://www.apkmirror.com/apk/google-inc/google-phone/).
-- Download the version you want (e.g., `Google Phone 241.0.xxx`).
-- Save it to your folder as `stock_dialer.apk`.
-
-#### Step 3: Run the Command
-
-Open **Command Prompt** (CMD) or **Terminal** in this project directory.
-
-##### 👉 For Standard Non-Root Phones:
+### 2. Clone This Repository
+Open your terminal / command prompt and run:
 ```bash
-python scripts/mod_dialer.py build ^
-  --input "C:\path\to\stock_dialer.apk" ^
-  --output "C:\path\to\GoogleDialer_AMOLED.apk" ^
-  --mode cloned ^
-  --bump-version ^
-  --apktool "C:\path\to\apktool.jar" ^
-  --signer "C:\path\to\uber-apk-signer.jar"
-```
-*(On Linux or macOS, replace `^` with `\`)*
-
-##### 👉 For Rooted Phones (Magisk Module):
-```bash
-python scripts/mod_dialer.py build ^
-  --input "C:\path\to\stock_dialer.apk" ^
-  --output "C:\path\to\GoogleDialer_System.apk" ^
-  --mode system ^
-  --magisk "C:\path\to\GoogleDialer_AMOLED_Magisk.zip" ^
-  --apktool "C:\path\to\apktool.jar" ^
-  --signer "C:\path\to\uber-apk-signer.jar"
+git clone https://github.com/Gagan-Pratap-S/google-dialer-amoled.git
+cd google-dialer-amoled
 ```
 
-#### Step 4: Install on Your Phone
+---
 
-- **Non-Root**: Transfer `GoogleDialer_AMOLED.apk` to your phone and tap to install (or run `adb install -r GoogleDialer_AMOLED.apk`). Open the app and set it as your default dialer!
-- **Rooted**: Transfer `GoogleDialer_AMOLED_Magisk.zip` to your phone, open the **Magisk** or **KernelSU** app, go to **Modules &rarr; Install from storage**, select the `.zip`, and reboot.
+## How to Build
+
+Choose whichever method fits your workflow:
+
+### Method A: Using an AI Coding Assistant (Easiest)
+
+You can run this project through any AI coding assistant—**Google Antigravity**, **Cursor**, **Claude Code**, or **GitHub Copilot**.
+
+1. **If using Antigravity**:
+   Copy this folder into your skills directory:
+   - Windows: `C:\Users\<YourUsername>\.gemini\config\skills\google-dialer-amoled`
+   - Linux/macOS: `~/.gemini/config/skills/google-dialer-amoled`
+   
+   **For Non-Root phones**, prompt:
+   > *"Convert my Google Dialer APK at `path/to/dialer.apk` to an AMOLED build for non-root."*
+   
+   **For Rooted phones (Magisk / KernelSU module)**, prompt:
+   > *"Build a Magisk systemless module from my Google Dialer APK at `path/to/dialer.apk` with the AMOLED theme."*
+
+2. **If using Cursor / Claude Code / Copilot**:
+   Open this repository folder in your editor or terminal, place your stock APK in the folder, and prompt the agent:
+   
+   **For Non-Root phones**:
+   > *"Run scripts/mod_dialer.py on stock_dialer.apk to produce a non-root AMOLED APK with bumped version."*
+   
+   **For Rooted phones (Magisk module)**:
+   > *"Run scripts/mod_dialer.py on stock_dialer.apk with `--mode system` and output a flashable Magisk module zip."*
+
+The assistant will read `SKILL.md`, execute the Python script, and output your signed APK or flashable Magisk zip.
 
 ---
 
-## ❓ Frequently Asked Questions (FAQ)
+### Method B: Terminal / Command Line (Direct)
 
-### Q: Will this replace my official phone app?
-- **Non-Root mode (`--mode cloned`)**: No! It installs alongside your existing Phone app under a separate package name (`com.google.android.dialer.amoled`). You can have both apps installed at the same time and switch back anytime.
-- **Root mode (`--mode system`)**: Yes, it mounts over the system dialer so it cleanly replaces the grey factory app.
+You only need **Python 3.8+** and **Java (JRE 17+)** installed on your system. The script automatically handles downloading `apktool` and `uber-apk-signer` on its first run if they are not already installed.
 
-### Q: Why do I get `INSTALL_FAILED_UPDATE_INCOMPATIBLE`?
-This error happens if you try to install an APK with the official Google package name on a non-rooted phone without Google's private signing key.  
-**Fix**: Build with `--mode cloned` (default) which renames the package ID to avoid this conflict.
+#### For Non-Root Phones (Standalone APK):
+```bash
+python scripts/mod_dialer.py build --input "path/to/stock_dialer.apk" --mode cloned
+```
+That's it. The script decompiles the APK, applies the AMOLED palette, clones the package name to prevent signature conflicts, bumps the `versionCode` so Android won't block it as a downgrade, rebuilds, and signs it.
 
-### Q: Why do I get `INSTALL_FAILED_VERSION_DOWNGRADE`?
-Your phone already has a newer dialer update installed.  
-**Fix**: Always include `--bump-version` when running the command. This automatically bumps the internal version code to `20999999` so Android accepts it without issue.
+Your output file will be saved right next to your input as `stock_dialer_AMOLED.apk`.
 
----
-
-## ⚖️ Legal & Disclaimer
-
-This project is an open-source modification script and style definition. It **does NOT contain or distribute any copyrighted Google proprietary binaries or APK files**. Users provide their own legally acquired APKs for theming.
-
-Google Phone is a trademark of Google LLC. This project is independent and not affiliated with or endorsed by Google LLC.
+#### For Rooted Phones (Magisk Module):
+```bash
+python scripts/mod_dialer.py build --input "path/to/stock_dialer.apk" --mode system --magisk "GoogleDialer_AMOLED_Magisk.zip"
+```
 
 ---
 
-## 📄 License
+## Installing on Your Phone
 
-This project is open-source and licensed under the [MIT License](LICENSE).
+- **Non-Root**: Copy the generated `_AMOLED.apk` to your phone and tap it in your file manager to install (or run `adb install -r path/to/app.apk`). Once installed, open your phone's **Default Apps** settings and set **Phone (AMOLED)** as your default calling app.
+- **Rooted**: Copy the `.zip` file to your phone, open the **Magisk** or **KernelSU** app, head to **Modules → Install from storage**, select the zip, and reboot.
+
+---
+
+## Troubleshooting
+
+- **`INSTALL_FAILED_UPDATE_INCOMPATIBLE`**: Happens when trying to install an APK with the official package name over the factory-installed dialer without Google's private key. Always use `--mode cloned` on non-rooted phones.
+- **`INSTALL_FAILED_VERSION_DOWNGRADE`**: The script bumps `versionCode` to `20999999` by default. If you manually disable it with `--no-bump-version` and see this error, re-run with version bumping enabled.
+- **Missing Java error**: Make sure Java JRE 17+ is installed and accessible from your terminal (`java -version`).
+
+---
+
+## Repository Structure
+
+```
+google-dialer-amoled/
+├── SKILL.md                      # Agent skill instructions (Antigravity / Cursor / Claude)
+├── README.md                     # Documentation and usage guide
+├── references/
+│   └── amoled_palette.json       # Color definitions & silhouette outline mappings
+└── scripts/
+    └── mod_dialer.py             # Main CLI build & patching script
+```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+*Disclaimer: This repository does not contain or distribute any Google proprietary binaries or APK files. Users supply their own legally acquired APKs.*
