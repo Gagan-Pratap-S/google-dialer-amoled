@@ -1,79 +1,67 @@
 package app.morphe.patches.dialer
 
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.resourceXml
 import app.morphe.patches.dialer.DialerConstants.COMPATIBILITY_GOOGLE_DIALER
 
 /**
  * Clones package to com.google.android.dialer.amoled for non-rooted users.
- * Bypasses signature conflicts, duplicate permissions, and provider collisions across all Dialer versions.
+ * Note: On devices where Google Phone is pre-installed as a system app,
+ * cloning may cause crashes due to system telephony requirements.
+ * For rooted devices, leave this OFF and install via Root Mount.
  */
 @Suppress("unused")
 val googleDialerClonePatch = resourcePatch(
     name = "Clone Dialer Package",
-    description = "Changes package to com.google.android.dialer.amoled so non-rooted devices can install it without signature conflict.",
-    default = true
+    description = "Changes package to com.google.android.dialer.amoled for non-rooted install. " +
+                  "Leave OFF on rooted devices to mount over stock dialer without crashing.",
+    default = false
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_DIALER)
 
     execute {
-        val manifestFile = get("AndroidManifest.xml")
-        if (!manifestFile.exists()) return@execute
+        val packageName = "com.google.android.dialer"
+        val newPackageName = "com.google.android.dialer.amoled"
 
-        var text = manifestFile.readText(Charsets.UTF_8)
+        resourceXml("AndroidManifest.xml").use { manifest ->
+            manifest.root.setAttribute("package", newPackageName)
 
-        // 1. Rename package attribute
-        text = text.replace(
-            "package=\"com.google.android.dialer\"",
-            "package=\"com.google.android.dialer.amoled\""
-        )
+            // Update all custom permissions
+            val usesPermissions = manifest.elements("uses-permission").toList()
+            manifest.elements("permission").forEach { perm ->
+                val oldName = perm.attribute("android:name").orEmpty()
+                if (oldName.startsWith("$packageName.")) {
+                    val newName = oldName.replaceFirst(packageName, newPackageName)
+                    perm.setAttribute("android:name", newName)
 
-        // 2. Universally rename all custom permissions and uses-permissions declared under com.google.android.dialer.*
-        // Matches e.g. DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION, TRANSIT_MODE_STATE_CHANGE, etc.
-        val permRegex = Regex("""(<(?:uses-)?permission(?:-group)?\b[^>]*\bandroid:name=")com\.google\.android\.dialer\.([^"]+")""")
-        text = permRegex.replace(text) { matchResult ->
-            "${matchResult.groupValues[1]}com.google.android.dialer.amoled.${matchResult.groupValues[2]}"
-        }
+                    usesPermissions.firstOrNull { it.attribute("android:name") == oldName }
+                        ?.setAttribute("android:name", newName)
+                }
+            }
 
-        // 3. Rename any component permission enforcement attributes (e.g. android:permission="com.google.android.dialer...")
-        text = text.replace(
-            """android:permission="com.google.android.dialer.""",
-            """android:permission="com.google.android.dialer.amoled."""
-        )
+            // Update all provider authorities
+            manifest.elements("provider").forEach { provider ->
+                val authorities = provider.attribute("android:authorities").orEmpty().split(';')
+                val newAuthorities = authorities.map { auth ->
+                    if (auth.startsWith("$packageName.")) {
+                        auth.replaceFirst(packageName, newPackageName)
+                    } else if (auth.isNotEmpty() && !auth.endsWith(".amoled")) {
+                        "$auth.amoled"
+                    } else {
+                        auth
+                    }
+                }
+                provider.setAttribute("android:authorities", newAuthorities.joinToString(";"))
+            }
 
-        // 4. Direct safety net for known permissions
-        text = text.replace(
-            "com.google.android.dialer.TRANSIT_MODE_STATE_CHANGE",
-            "com.google.android.dialer.amoled.TRANSIT_MODE_STATE_CHANGE"
-        )
-        text = text.replace(
-            "com.google.android.dialer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
-            "com.google.android.dialer.amoled.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        )
-
-        // 5. Make proprietary dialer support library optional (prevents install failures on non-Pixel devices)
-        text = text.replace(
-            "<uses-library android:name=\"com.google.android.dialer.support\" android:required=\"true\"/>",
-            "<uses-library android:name=\"com.google.android.dialer.support\" android:required=\"false\"/>"
-        )
-
-        // 6. Suffix ContentProvider authorities with .amoled to avoid INSTALL_FAILED_CONFLICTING_PROVIDER
-        val authRegex = Regex("""android:authorities="([^"]+)"""")
-        text = authRegex.replace(text) { matchResult ->
-            val auth = matchResult.groupValues[1]
-            if (auth.endsWith(".amoled")) {
-                matchResult.value
-            } else {
-                """android:authorities="$auth.amoled""""
+            // Update proprietary library requirement to optional
+            manifest.elements("uses-library").forEach { lib ->
+                if (lib.attribute("android:name") == "com.google.android.dialer.support") {
+                    lib.setAttribute("android:required", "false")
+                }
             }
         }
 
-        // 7. Update fallback authority meta-data reference
-        text = text.replace(
-            """android:value="com.google.android.dialer.preferredsimfallback"""",
-            """android:value="com.google.android.dialer.preferredsimfallback.amoled""""
-        )
-
-        manifestFile.writeText(text, Charsets.UTF_8)
-        println("AndroidManifest.xml successfully cloned to com.google.android.dialer.amoled (all permissions isolated)")
+        println("AndroidManifest.xml successfully cloned to $newPackageName")
     }
 }

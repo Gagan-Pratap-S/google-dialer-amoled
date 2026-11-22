@@ -1,9 +1,10 @@
 package app.morphe.patches.dialer
 
-import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.patch.listDecodableFiles
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.resourceXml
+import app.morphe.patcher.xml.ResourceXml
 import app.morphe.patches.dialer.DialerConstants.COMPATIBILITY_GOOGLE_DIALER
-import org.w3c.dom.Element
 
 /**
  * AMOLED Dark Theme & Silhouette Avatar Fix for Google Phone (Google Dialer).
@@ -20,7 +21,7 @@ val googleDialerThemePatch = resourcePatch(
     execute {
         println("Applying Google Dialer AMOLED modifications...")
 
-        val nightColors = mapOf(
+        val nightColorReplacements = mapOf(
             "settingslib_materialColorSurfaceContainer" to "#000000",
             "settingslib_materialColorSurfaceContainerHigh" to "#0a0a0a",
             "settingslib_materialColorSurfaceContainerHighest" to "#141414",
@@ -30,20 +31,13 @@ val googleDialerThemePatch = resourcePatch(
             "survey_surface_color_elevation_2" to "#050505",
             "survey_surface_color_elevation_3" to "#0a0a0a",
             "survey_alert_dialog_bg_color" to "#000000",
+            "google_marterial_dialog_background_color" to "#000000",
+            "settingslib_dialog_background" to "#000000",
             "dialpad_icon_text_enabled" to "#ffffffff",
             "dialpad_icon_text_disabled" to "#80ffffff",
             "empty_content_view_message" to "#ffffffff",
             "settingslib_materialColorOnSurface" to "#ffffffff",
             "settingslib_materialColorOnSurfaceVariant" to "#ffffffff"
-        )
-
-        val nightV31Colors = mapOf(
-            "google_marterial_dialog_background_color" to "#000000",
-            "settingslib_dialog_background" to "#000000",
-            "settingslib_materialColorSurfaceContainer" to "#000000",
-            "settingslib_materialColorSurfaceContainerHigh" to "#0a0a0a",
-            "settingslib_materialColorSurfaceContainerHighest" to "#141414",
-            "settingslib_materialColorSurfaceVariant" to "#1f1f1f"
         )
 
         val outlineReplacements = mapOf(
@@ -54,49 +48,66 @@ val googleDialerThemePatch = resourcePatch(
             "mc3_outline" to "@android:color/system_outline_dark"
         )
 
-        // 1. Decode resources from ARSC so they are available to be edited
-        try {
-            decode("res/values-night*/colors.xml")
-        } catch (_: Exception) {}
-        try {
-            decode("res/values-v34/*")
-        } catch (_: Exception) {}
-        try {
-            decode("res/values-night-v34/*")
-        } catch (_: Exception) {}
+        // 1. Transform all colors in res/values-night*/colors.xml
+        val nightFiles = listDecodableFiles("res/values-night*/colors.xml")
+        println("Found night color files: $nightFiles")
+        nightFiles.forEach { path ->
+            resourceXml(path).use { xml ->
+                xml.transformColors { name, _ ->
+                    nightColorReplacements[name]
+                }
+            }
+        }
 
-        // 2. Patch using Morphe's document API (auto-commits into resources.arsc)
-        patchResourceXml("res/values-night/colors.xml", nightColors)
-        patchResourceXml("res/values-night-v31/colors.xml", nightV31Colors)
-        patchResourceXml("res/values-night-v34/colors.xml", outlineReplacements)
-        patchResourceXml("res/values-v34/colors.xml", outlineReplacements)
-        patchResourceXml("res/values-v34/styles.xml", outlineReplacements)
+        // 2. Transform silhouette outline colors in v34 files
+        val v34ColorFiles = listDecodableFiles("res/values*34/colors.xml")
+        println("Found v34 color files: $v34ColorFiles")
+        v34ColorFiles.forEach { path ->
+            resourceXml(path).use { xml ->
+                xml.transformColors { name, _ ->
+                    outlineReplacements[name]
+                }
+            }
+        }
+
+        // 3. Transform silhouette outline styles in v34 styles
+        val v34StyleFiles = listDecodableFiles("res/values*34/styles.xml")
+        println("Found v34 style files: $v34StyleFiles")
+        v34StyleFiles.forEach { path ->
+            resourceXml(path).use { xml ->
+                xml.transformStyleItems { _, itemName, _ ->
+                    outlineReplacements[itemName]
+                }
+            }
+        }
 
         println("Google Dialer AMOLED theme successfully applied!")
     }
 }
 
 /**
- * Helper to update XML color and style items safely using Morphe document API.
+ * Transforms the value of the color elements in a values file.
  */
-private fun ResourcePatchContext.patchResourceXml(path: String, replacements: Map<String, String>) {
-    try {
-        document(path).use { doc ->
-            var count = 0
-            listOf("color", "item").forEach { tagName ->
-                val nodes = doc.getElementsByTagName(tagName)
-                for (i in 0 until nodes.length) {
-                    val element = nodes.item(i) as Element
-                    val nameAttr = element.getAttribute("name")
-                    if (replacements.containsKey(nameAttr)) {
-                        element.textContent = replacements[nameAttr]
-                        count++
-                    }
-                }
-            }
-            println("Patched $count entries in $path")
+private fun ResourceXml.transformColors(transform: (name: String, value: String) -> String?) {
+    root.children.forEach { color ->
+        val name = color.attribute("name") ?: return@forEach
+        val value = transform(name, color.text) ?: return@forEach
+        if (value != color.text) color.text = value
+    }
+}
+
+/**
+ * Transforms the value of the items of the styles in a styles file.
+ */
+private fun ResourceXml.transformStyleItems(
+    transform: (styleName: String, itemName: String, value: String) -> String?
+) {
+    root.children("style").forEach { style ->
+        val styleName = style.attribute("name") ?: return@forEach
+        style.children("item").forEach { item ->
+            val itemName = item.attribute("name") ?: return@forEach
+            val value = transform(styleName, itemName, item.text) ?: return@forEach
+            if (value != item.text) item.text = value
         }
-    } catch (e: Exception) {
-        println("Could not patch $path: ${e.message}")
     }
 }
