@@ -31,7 +31,10 @@ Google's default dark mode uses Material You dark grey (`#1f1f1f`). This project
 ## Getting Started
 
 ### 1. Download a Stock Google Phone APK
-Download any official Google Phone APK from [APKMirror](https://www.apkmirror.com/apk/google-inc/google-phone/) (pick `arm64-v8a` or `armeabi-v7a` matching your device).
+Download an official Google Phone APK from [APKMirror](https://www.apkmirror.com/apk/google-inc/google-phone/) (pick `arm64-v8a` or `armeabi-v7a` matching your device).
+
+> [!IMPORTANT]
+> **Use Universal / Non-Pixel APK Only**: Only download the **universal** release (often marked **non-nexus** or standard general releases). **Do NOT download Pixel-exclusive builds** (marked with `-pixel` or `pixel2026` in their filename/version). Pixel builds depend on proprietary Google Pixel system frameworks and will crash on launch on Motorola, Samsung, Xiaomi, OnePlus, or other non-Pixel devices.
 
 ### 2. Clone This Repository
 Open your terminal / command prompt and run:
@@ -107,11 +110,21 @@ If you use **Morphe Manager** or **ReVanced Manager** directly on your phone:
 - **Non-Root**: Copy the generated `_AMOLED.apk` to your phone and tap it in your file manager to install (or run `adb install -r path/to/app.apk`). Once installed, open your phone's **Default Apps** settings and set **Phone (AMOLED)** as your default calling app.
 - **Rooted**: Copy the `.zip` file to your phone, open the **Magisk** or **KernelSU** app, head to **Modules → Install from storage**, select the zip, and reboot.
 
+> [!TIP]
+> **If you cannot select the app as Default Phone App (Restricted Settings)**:
+> On Android 13 and Android 14+, sideloaded apps that require sensitive roles may have default app permissions blocked by Android's security sandbox. If the toggle is greyed out or won't stick:
+> 1. Go to your phone's **Settings → Apps → All Apps → Phone (AMOLED)** (or long-press the app icon and tap **App info**).
+> 2. Tap the **three dots (⋮)** in the top-right corner.
+> 3. Tap **"Allow restricted settings"** (and authenticate with your fingerprint or PIN).
+> 4. Now go to **Settings → Apps → Default apps → Phone app** and select **Phone (AMOLED)**.
+> 5. Grant **Phone, Contacts, and Call logs** permissions under App info → Permissions.
+
 ---
 
 ## Troubleshooting
 
-- **`INSTALL_FAILED_UPDATE_INCOMPATIBLE`**: Happens when trying to install an APK with the official package name over the factory-installed dialer without Google's private key. Always use `--mode cloned` on non-rooted phones.
+- **App crashes immediately on launch**: You likely patched a Pixel-specific APK (tagged with `-pixel` or `pixel2026`). On non-Pixel devices (Motorola, Xiaomi, Samsung, etc.), only use universal / `non-nexus` releases. Also ensure the app is designated as your **Default Phone App** with restricted settings allowed.
+- **`INSTALL_FAILED_UPDATE_INCOMPATIBLE`**: Happens when trying to install an APK with the official package name over the factory-installed dialer without Google's private key. Always use `--mode cloned` (or enable the Clone patch) on non-rooted phones.
 - **`INSTALL_FAILED_VERSION_DOWNGRADE`**: The script bumps `versionCode` to `20999999` by default. If you manually disable it with `--no-bump-version` and see this error, re-run with version bumping enabled.
 - **Missing Java error**: Make sure Java JRE 17+ is installed and accessible from your terminal (`java -version`).
 

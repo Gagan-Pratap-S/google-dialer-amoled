@@ -34,3 +34,15 @@ If you want these patches available to every Morphe Manager user globally:
    ```
 4. Load the generated `.jar` file into **Morphe Manager** under **Settings &rarr; Sources &rarr; Local Patches**.
 5. Select your Google Phone APK, toggle **AMOLED Dark Theme**, tap **Patch**, and install.
+
+---
+
+## Important Tips
+
+- **Use Universal / Non-Pixel APK Only**: Never patch Pixel-only APKs (tagged with `-pixel` or `pixel2026`). They crash on Motorola, Samsung, Xiaomi, and other non-Pixel devices due to missing Pixel proprietary system frameworks. Use universal/non-nexus builds.
+- **Default Phone App & Restricted Settings**:
+  On Android 13/14+, if you cannot select the cloned app as your default phone app:
+  1. Open **Settings → Apps → All Apps → Phone (AMOLED)**.
+  2. Tap the **three dots (⋮)** in the top right corner.
+  3. Tap **"Allow restricted settings"** and authenticate.
+  4. Now select it under **Default apps → Phone app** and grant Phone/Contacts permissions.
